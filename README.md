@@ -1,32 +1,78 @@
 # TradingView Gratis 📈
 
 > **Una alternativa open-source y 100% gratis a TradingView Pro, pensada para LATAM.**
-> Velas en vivo, indicadores propios, watchlist, multi-timeframe — sin pagar USD, sin login, sin ads.
+> Velas en vivo, indicadores propios, watchlist, dibujo técnico, detección automática de patrones — sin pagar USD, sin login, sin ads.
 
-Plataforma de charts crypto construida sobre los datos públicos de **Binance** (WebSocket) y la misma librería de render que usa TradingView ([`lightweight-charts`](https://github.com/tradingview/lightweight-charts)).
+Plataforma de charts para **crypto** (Binance) y **acciones** (Yahoo Finance), construida sobre la misma librería de render que usa TradingView ([`lightweight-charts`](https://github.com/tradingview/lightweight-charts)).
 
 ---
 
-## ✨ Features
+## 🤖 Ejecutalo con Claude Code (recomendado)
 
-- 📊 **Velas en vivo** vía WebSocket de Binance (sin API key)
-- 🔍 **Búsqueda de símbolo** sobre todos los pares USDT del exchange
-- ⏱️ **Multi-timeframe**: 1m / 5m / 15m / 1h / 4h / 1d / 1w
-- 📐 **Indicadores client-side**: EMA 20/50/200, RSI 14, MACD 12/26/9, Volumen
-- 👁️ **Watchlist** con precios y cambio 24h actualizándose en tiempo real
-- 🎨 **Visual idéntica a TradingView** (paleta, fuentes, layout)
-- 💾 **Persistencia** en localStorage (símbolo, timeframe, indicadores)
-- 🔌 **Reconexión robusta** del WebSocket con backoff exponencial
-- 🌐 100% client-side — deploy estático en Vercel/Cloudflare
+Si tenés [Claude Code](https://claude.com/claude-code) instalado, no hace falta que sepas nada de Node.js ni de comandos — Claude arma, instala y levanta el proyecto por vos, y también le podés pedir que agregue funciones nuevas.
 
-## 🚀 Empezar
+**1. Instalá los requisitos (una sola vez):**
+- [Node.js](https://nodejs.org) (versión LTS)
+- Claude Code: `npm install -g @anthropic-ai/claude-code`
+
+**2. Clonás el repo y entrás a la carpeta:**
+```bash
+git clone https://github.com/totoschi10-collab/tradingview-mesa-chica.git
+cd tradingview-mesa-chica/app
+```
+
+**3. Arrancás Claude Code ahí adentro:**
+```bash
+claude
+```
+
+**4. Le pedís, tal cual:**
+```
+Instalá las dependencias y levantá el servidor de desarrollo. Después abrime la app en el navegador.
+```
+
+Claude va a correr `npm install`, `npm run dev`, y te va a mostrar la app funcionando. A partir de ahí le podés pedir lo que quieras:
+- *"Agregá un indicador de Bollinger Bands"*
+- *"Cambiá el color de las velas alcistas a azul"*
+- *"Quiero que la watchlist tenga un buscador arriba"*
+- *"Agregá soporte para futuros de Binance"*
+
+Como el proyecto ya trae un archivo `AGENTS.md` con el contexto del stack, Claude entiende la estructura del código desde el primer mensaje.
+
+---
+
+## 🚀 Empezar manualmente (sin Claude Code)
 
 ```bash
+git clone https://github.com/totoschi10-collab/tradingview-mesa-chica.git
+cd tradingview-mesa-chica/app
 npm install
 npm run dev
 ```
 
 Abrí [http://localhost:3000](http://localhost:3000).
+
+---
+
+## ✨ Features
+
+- 📊 **Velas en vivo** — crypto vía WebSocket de Binance, acciones vía Yahoo Finance (sin API key)
+- 🔍 **Búsqueda de símbolo** — pares USDT de Binance y tickers de acciones/ETFs
+- ⏱️ **Multi-timeframe**: 1m / 5m / 15m / 1h / 4h / 1d / 1w, con % de variación calculado según el timeframe activo
+- 📐 **Indicadores client-side**: EMA 20/50/200, RSI 14, MACD 12/26/9, Volumen
+- ✏️ **Herramientas de dibujo**: línea horizontal, línea de tendencia (segmento/rayo/extendida), Fibonacci (retroceso + extensión unificados), regla de medida (funciona incluso en el área futura del chart)
+- 🧠 **Detección automática de patrones**, cada uno con su propio toggle:
+  - Soportes y resistencias validados (clustering de pivotes)
+  - Líneas de tendencia automáticas
+  - Canales paralelos (estilo herramienta de canal de TradingView)
+  - Banderas alcistas/bajistas (bull flag / bear flag)
+  - Fibonacci automático sobre el último cambio de tendencia
+- 💼 **Estrategias globales** — guardá un set de dibujos y aplicalo a cualquier símbolo
+- 👁️ **Watchlist** con dos pestañas (Cripto / Acciones), precios en vivo y % dinámico
+- 🖱️ **Zoom de precio con la rueda** sobre el eje derecho, igual que TradingView
+- 🎨 **Visual idéntica a TradingView** (paleta, fuentes, layout)
+- 💾 **Persistencia** en localStorage (símbolo, timeframe, indicadores, dibujos, estrategias)
+- 🌐 100% client-side salvo el proxy de Yahoo Finance — deploy fácil en Vercel
 
 ## 🛠️ Stack
 
@@ -38,40 +84,39 @@ Abrí [http://localhost:3000](http://localhost:3000).
 | Charts | [lightweight-charts](https://github.com/tradingview/lightweight-charts) v5 |
 | Estado | Zustand (con persistencia) |
 | Iconos | lucide-react |
-| Datos | Binance Public REST + WebSocket |
+| Datos crypto | Binance Public REST + WebSocket |
+| Datos acciones | Yahoo Finance (vía API route propia) |
 
 ## 📐 Arquitectura
 
 ```
 src/
 ├── app/
-│   ├── layout.tsx          # Root, fuente Inter, TooltipProvider, dark
-│   ├── page.tsx            # Dashboard armando el layout
-│   └── globals.css         # Paleta TradingView
+│   ├── api/stocks/         # Proxy a Yahoo Finance (quote, chart, search)
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css        # Paleta TradingView
 ├── components/
 │   ├── chart/
-│   │   ├── PriceChart.tsx     # Chart core (lightweight-charts + panes)
-│   │   ├── SymbolSelector.tsx # Búsqueda de pares USDT
-│   │   ├── TimeframeSelector.tsx
-│   │   └── IndicatorMenu.tsx  # Toggle EMA/RSI/MACD/Volume
+│   │   ├── PriceChart.tsx        # Chart core (lightweight-charts + panes)
+│   │   ├── DrawingToolbar.tsx    # Barra de herramientas de dibujo
+│   │   ├── FibOverlay.tsx        # Fibonacci (retroceso/extensión)
+│   │   ├── TrendLineOverlay.tsx
+│   │   ├── PatternOverlay.tsx    # S/R, trendlines, canales, banderas, fib auto
+│   │   ├── StrategyDialog.tsx    # Estrategias globales
+│   │   └── IndicatorMenu.tsx     # Toggles de indicadores y patrones
 │   ├── layout/
-│   │   ├── Header.tsx
-│   │   ├── LeftSidebar.tsx    # Iconos drawing tools (visual)
-│   │   ├── RightSidebar.tsx
-│   │   └── BottomPanel.tsx    # Stats 24h
 │   ├── watchlist/
-│   │   └── Watchlist.tsx      # Precios live multi-símbolo
-│   └── ui/                    # shadcn primitives
+│   │   └── Watchlist.tsx         # Precios live crypto + acciones
+│   └── ui/                       # shadcn primitives
 └── lib/
-    ├── binance/
-    │   ├── rest.ts            # klines / ticker / exchangeInfo
-    │   ├── ws.ts              # WS multiplex + auto-reconnect
-    │   └── types.ts
-    ├── indicators/
-    │   └── index.ts           # SMA, EMA, RSI (Wilder), MACD
+    ├── binance/            # klines / ticker / WS multiplex
+    ├── yahoo/              # rest.ts — quotes y klines de acciones
+    ├── indicators/         # SMA, EMA, RSI (Wilder), MACD
+    ├── patterns.ts         # Detección de S/R, trendlines, canales, banderas, fib auto
     ├── store/
-    │   └── chart-store.ts     # Zustand global state
-    └── format.ts              # formatPrice / formatPct / formatVolume
+    │   └── chart-store.ts  # Zustand global state
+    └── format.ts
 ```
 
 ## 🌐 Deploy a Vercel
@@ -81,47 +126,10 @@ npm i -g vercel
 vercel
 ```
 
-O conectá el repo en [vercel.com/new](https://vercel.com/new) y deploy automático. No hay variables de entorno — todo es cliente.
-
-## 🧠 Cómo funciona
-
-### Datos históricos
-Al abrir un símbolo se hace un `GET /api/v3/klines` (REST) que trae las últimas **1000 velas** del par + timeframe activo. Se renderizan instantáneamente.
-
-### Datos en vivo
-Una única conexión WebSocket multiplexada (`stream.binance.com`) recibe:
-- `<symbol>@kline_<interval>` → updates de la vela actual + cierre de velas
-- `<symbol>@miniTicker` → tickers del watchlist
-
-Al reconectarse (Binance corta el WS cada 24h) se vuelven a suscribir todos los streams activos con backoff exponencial.
-
-### Indicadores
-Se calculan **client-side** sobre el array de velas en cada update. Implementaciones puras de TypeScript:
-- `EMA`: seeded con SMA del primer período, luego `close * k + prev * (1-k)`
-- `RSI`: Wilder (suavizado exponencial sobre ganancias/pérdidas, período 14)
-- `MACD`: EMA(12) − EMA(26), signal = EMA(9) sobre MACD line
-
-Para 1000 velas y panes múltiples el costo es despreciable.
-
-## ⚠️ Qué NO incluye (todavía)
-
-- ❌ Pine Script (propietario de TradingView, no se puede clonar)
-- ❌ Drawing tools persistentes (Fibo, trend lines arrastrables)
-- ❌ Replay bar-by-bar
-- ❌ Alertas server-side (siguiente video de la serie)
-- ❌ Trading real (bot con API privada — video 4)
-
-## 📺 Serie de videos
-
-Este repo es la base de la serie **"TradingView Gratis"**:
-
-1. ✅ **Video 1 — Base**: lo que ves acá
-2. 🔜 **Video 2 — Alertas**: Supabase + Telegram bot
-3. 🔜 **Video 3 — Indicadores AI**: SuperTrend, Ichimoku, custom con Claude
-4. 🔜 **Video 4 — Bot que opera**: API privada Binance + ejecución
+O conectá el repo en [vercel.com/new](https://vercel.com/new) y deploy automático — importante: seteá el **Root Directory en `app`**. No hay variables de entorno que configurar.
 
 ## 📄 Licencia
 
 MIT — usalo, forkealo, monetizalo, lo que quieras.
 
-`lightweight-charts` es Apache 2.0 con atribución a TradingView — la atribución vive en el footer/UI por requerimiento de la licencia.
+`lightweight-charts` es Apache 2.0 con atribución a TradingView.
