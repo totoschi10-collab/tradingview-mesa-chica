@@ -6,6 +6,7 @@ import { RightSidebar } from "@/components/layout/RightSidebar";
 import { BottomPanel } from "@/components/layout/BottomPanel";
 import { PriceChart } from "@/components/chart/PriceChart";
 import { IndicatorSettingsDialog } from "@/components/chart/IndicatorSettingsDialog";
+import { StrategyDialog } from "@/components/chart/StrategyDialog";
 import { useChartStore } from "@/lib/store/chart-store";
 
 export default function HomePage() {
@@ -17,7 +18,7 @@ export default function HomePage() {
       <Header />
       <div className="flex min-h-0 flex-1">
         <LeftSidebar />
-        <main className="relative flex min-h-0 flex-1 flex-col">
+        <main className="relative flex min-h-0 min-w-0 flex-1 flex-col">
           <div className="min-h-0 flex-1">
             <PriceChart symbol={symbol} timeframe={timeframe} />
           </div>
@@ -26,6 +27,7 @@ export default function HomePage() {
       </div>
       <BottomPanel />
       <IndicatorSettingsDialog />
+      <StrategyDialog />
     </div>
   );
 }

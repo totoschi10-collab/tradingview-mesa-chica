@@ -14,6 +14,7 @@ interface Props {
   durationText: string;
   isUp: boolean;
   isPreview: boolean;
+  onClose?: () => void;
 }
 
 const UP_STROKE = "#26a69a";
@@ -33,6 +34,7 @@ export function MeasureOverlay({
   durationText,
   isUp,
   isPreview,
+  onClose,
 }: Props) {
   const stroke = isUp ? UP_STROKE : DOWN_STROKE;
   const fill = isUp ? UP_FILL : DOWN_FILL;
@@ -112,14 +114,24 @@ export function MeasureOverlay({
       </svg>
 
       <div
-        className="pointer-events-none absolute z-20 -translate-x-1/2 whitespace-nowrap rounded border px-2 py-1 text-center text-[11px] font-medium leading-tight tabular-nums shadow-md"
+        className="absolute z-20 -translate-x-1/2 whitespace-nowrap rounded border px-2 py-1 text-center text-[11px] font-medium leading-tight tabular-nums shadow-md"
         style={{
           ...labelStyle,
           backgroundColor: stroke,
           borderColor: stroke,
           color: "#ffffff",
+          pointerEvents: isPreview ? "none" : "all",
         }}
       >
+        {!isPreview && onClose && (
+          <button
+            onClick={onClose}
+            className="absolute -right-1.5 -top-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-white/20 text-[8px] font-bold hover:bg-white/40"
+            title="Cerrar medición"
+          >
+            ×
+          </button>
+        )}
         <div>
           {sign}
           {formatPrice(priceDiff)} ({pctSign}
